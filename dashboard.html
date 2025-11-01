@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>MK Digital Clock — Quotes</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --card-bg: rgba(255,255,255,0.20);
+      --card-border: rgba(255,255,255,0.30);
+      --accent: #2b6edf; /* soft blue */
+      --text: #0f172a;
+      --btn-size: 52px;
+      --glass-blur: 14px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      font-family: 'Cairo', sans-serif;
+      direction: rtl;
+      background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat fixed;
+      display:flex;
+      align-items:flex-start;
+      flex-direction:column;
+      min-height:100vh;
+      color:var(--text);
+      padding-bottom:60px;
+      overflow-x:hidden;
+    }
+
+    /* NAV */
+    nav{
+      position:fixed;top:0;left:0;right:0;
+      display:flex;justify-content:space-between;align-items:center;
+      padding:12px 28px;
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(6px);
+      border-bottom:1px solid rgba(255,255,255,0.18);
+      z-index:1000;
+    }
+    .logo{font-weight:700;font-size:20px;color:var(--text)}
+    .nav-links{display:flex;gap:18px;align-items:center}
+    .nav-links a{
+      text-decoration:none;color:var(--text);font-weight:600;padding:8px 12px;border-radius:8px;transition:.18s;
+    }
+    .nav-links a:hover{color:var(--accent);background:rgba(255,255,255,0.28)}
+    /* menu icon */
+    .menu-icon{
+      width:44px;height:36px;position:relative;cursor:pointer;
+      align-items:center;justify-content:center;display:flex;
+    }
+    .bar{
+      position:absolute;left:8px;right:8px;height:3px;background:var(--text);border-radius:4px;transition:all .25s ease;
+    }
+    .bar.top{top:8px}
+    .bar.mid{top:16.5px}
+    .bar.bot{top:25px}
+    .menu-icon.open .bar.top{transform:translateY(8.5px) rotate(45deg)}
+    .menu-icon.open .bar.mid{opacity:0;transform:scale(0.6)}
+    .menu-icon.open .bar.bot{transform:translateY(-8.5px) rotate(-45deg)}
+
+    /* overlay when menu open */
+    .overlay{
+      position:fixed;inset:0;background:rgba(10,10,10,0.28);backdrop-filter: blur(4px);opacity:0;pointer-events:none;transition:opacity .28s;
+      z-index:1200;display:flex;align-items:center;justify-content:center;
+    }
+    .overlay.show{opacity:1;pointer-events:auto}
+
+    /* MENU CARD - white glassy, no border, soft shadow */
+    .menu-card{
+      width:90%;max-width:380px;padding:22px;border-radius:14px;
+      background: rgba(255,255,255,0.90); /* white glassy */
+      border: none; /* no border as requested */
+      backdrop-filter: blur(10px);
+      transform:translateY(8px) scale(.98);opacity:0;transition:all .28s ease;
+      box-shadow:0 10px 30px rgba(3,10,24,0.10);
+    }
+    .overlay.show .menu-card{transform:translateY(0) scale(1);opacity:1}
+
+    .menu-card h3{font-size:18px;margin-bottom:8px;color:var(--text)}
+    .menu-card ul{list-style:none;display:flex;flex-direction:column;gap:8px;padding-top:6px;margin:0}
+    .menu-card a{display:block;padding:10px 12px;border-radius:10px;text-decoration:none;color:var(--text);background:transparent;font-weight:600}
+    .menu-card a:hover{background:rgba(43,110,223,0.08);color:var(--accent)}
+
+    /* layout center column */
+    .container{
+      width:100%;
+      max-width:620px;
+      margin:120px auto 40px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:18px;
+      padding:0 16px;
+    }
+
+    /* clock card */
+    .card{
+      width:100%;
+      background:var(--card-bg);
+      backdrop-filter: blur(var(--glass-blur));
+      border-radius:16px;
+      border:1px solid var(--card-border);
+      padding:28px 24px;
+      text-align:center;
+      box-shadow:0 6px 18px rgba(0,0,0,0.08);
+    }
+    .time{font-size:56px;font-weight:700;letter-spacing:2px}
+    .date{margin-top:8px;font-size:15px;color:#344054;opacity:0.9}
+    .footer-name{margin-top:14px;display:inline-block;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,0.3);color:var(--accent);font-weight:700}
+
+    /* quote card (smaller) */
+    .quote-card{
+      width:100%;
+      max-width:480px;
+      background:var(--card-bg);
+      backdrop-filter: blur(var(--glass-blur));
+      border-radius:14px;
+      border:1px solid var(--card-border);
+      padding:16px 14px 84px; /* extra bottom for buttons */
+      text-align:center;
+      box-shadow:0 6px 18px rgba(0,0,0,0.06);
+      position:relative;
+      min-height:96px;
+    }
+    .quote-text{
+      font-size:16px;
+      color:#0b2540;
+      line-height:1.6;
+      transition:opacity .45s ease, transform .45s ease;
+      min-height:56px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:6px 12px;
+      text-align:center;
+      word-break:break-word;
+    }
+
+    /* button group centered */
+    .btns {
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:12px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:center;
+    }
+
+    /* modern circular buttons */
+    .icon-btn{
+      width:var(--btn-size);height:var(--btn-size);border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(180deg,var(--accent),#4689ff);
+      border:none;cursor:pointer;color:#fff;font-size:18px;
+      box-shadow:0 8px 20px rgba(43,110,223,0.22);
+      transition:transform .12s ease, box-shadow .12s ease, opacity .25s;
+      opacity:0; /* initially hidden */
+      transform:translateY(8px) scale(.98);
+    }
+    .icon-btn.show{opacity:1; transform:translateY(0) scale(1)}
+    .icon-btn:active{transform:scale(.94)}
+    .icon-btn svg{width:22px;height:22px;display:block;fill:none;stroke:white;stroke-width:1.6}
+    .icon-btn.share{background:linear-gradient(180deg,#25D366,#1DA851)} /* whatsapp green */
+
+    /* tooltip copied */
+    .copied-tip{
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:78px;
+      background:rgba(0,0,0,0.72);
+      color:#fff;padding:6px 10px;border-radius:8px;font-size:13px;
+      opacity:0;transition:opacity .18s;pointer-events:none;
+      z-index:10;
+    }
+    .copied-tip.show{opacity:1}
+
+    /* small responsive */
+    @media (max-width:520px){
+      .time{font-size:44px}
+      .container{margin-top:100px}
+      .card{padding:20px}
+      .quote-card{padding:14px 12px 96px}
+      .quote-text{font-size:14px}
+      :root{--btn-size:46px}
+    }
+
+    /* nav for small screens */
+    @media (max-width:768px){
+      .nav-links{display:none}
+      .menu-icon{display:flex}
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">MK Clock</div>
+
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="nav-links" id="navLinksDesktop">
+        <a href="dashboard.html">الرئيسية</a>
+        <a href="#">الاستعلام</a>
+      </div>
+
+      <!-- menu icon -->
+      <div class="menu-icon" id="menuBtn" aria-label="قائمة">
+        <span class="bar top"></span>
+        <span class="bar mid"></span>
+        <span class="bar bot"></span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- overlay menu (white glass card centered) -->
+  <div id="overlay" class="overlay" aria-hidden="true">
+    <div class="menu-card" role="dialog" aria-modal="true" aria-label="قائمة الموقع">
+      <h3>القائمة</h3>
+      <ul>
+        <li><a href="dashboard.html">الرئيسية</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Clock Card -->
+    <div class="card clock-card" aria-live="polite">
+      <div id="time" class="time">--:--:--</div>
+      <div id="date" class="date">--</div>
+      <div class="footer-name">Mohammed Kholif</div>
+    </div>
+
+    <!-- Quote Card -->
+    <div class="quote-card" aria-live="polite">
+      <div id="quote" class="quote-text">جارٍ تحميل العبارات...</div>
+
+      <!-- copied tooltip -->
+      <div id="copiedTip" class="copied-tip" role="status" aria-hidden="true">تم النسخ ✅</div>
+
+      <!-- buttons group: copy + share -->
+      <div class="btns" role="group" aria-label="أزرار النسخ والمشاركة">
+        <button id="copyBtn" class="icon-btn" title="نسخ">
+          <!-- copy icon -->
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="9" y="9" width="9" height="11" rx="2"></rect>
+            <rect x="5" y="4" width="9" height="11" rx="2"></rect>
+          </svg>
+        </button>
+
+        <button id="shareBtn" class="icon-btn share" title="مشاركة واتساب">
+          <!-- paper plane / share icon -->
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M22 2L11 13"></path>
+            <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ========== MENU ========== */
+    const menuBtn = document.getElementById('menuBtn');
+    const overlay = document.getElementById('overlay');
+
+    function openMenu(){
+      menuBtn.classList.add('open');
+      overlay.classList.add('show');
+      overlay.setAttribute('aria-hidden','false');
+      // darken + blur background while menu open
+      document.body.style.transition = 'filter .28s ease';
+      document.body.style.filter = 'brightness(.6) blur(1px)';
+    }
+    function closeMenu(){
+      menuBtn.classList.remove('open');
+      overlay.classList.remove('show');
+      overlay.setAttribute('aria-hidden','true');
+      document.body.style.filter = '';
+    }
+    menuBtn.addEventListener('click', ()=>{
+      if(overlay.classList.contains('show')) closeMenu();
+      else openMenu();
+    });
+    // close menu when clicking overlay background (not the card)
+    overlay.addEventListener('click', (e)=>{
+      if(e.target === overlay) closeMenu();
+    });
+
+    /* ========== CLOCK ========== */
+    function updateClock(){
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2,'0');
+      const m = String(now.getMinutes()).padStart(2,'0');
+      const s = String(now.getSeconds()).padStart(2,'0');
+      document.getElementById('time').textContent = `${h}:${m}:${s}`;
+      const options = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+      document.getElementById('date').textContent = new Intl.DateTimeFormat('ar-EG', options).format(now);
+    }
+    setInterval(updateClock,1000);
+    updateClock();
+
+    /* ========== QUOTES (build to 500) ========== */
+    const baseQuotes = [
+"ابتسم.. ضحكتك ليها أثر على الناس.",
+"اللي يتعب عشان حلمه، بيستاهل الراحة بعده.",
+"ربنا دايمًا جنب اللي يصبر.",
+"ما تستعجلش.. كل حاجة ليها وقتها.",
+"الدنيا ليها طُرق: لو ضاقت احتسب.",
+"أعمل خير من غير ما تتوقع، السرور جوه قلبك بيكبر.",
+"نية واحدة كويسة تفتح باب كبير.",
+"الضحكة علاج ومجانية، استخدمها كتير.",
+"صباحك دعاء.. ابدأ يومك بدعوة صغيرة.",
+"ما تسيبش حلمك تموت من كتر التأجيل.",
+"لو زعلت خد نفس عميق وابتسم تاني.",
+"خليك بسيط، البساطة ستايل راقي.",
+"اتعلم تقول لأ لما لازم تقول لأ.",
+"لو وقعت قوم، كل مرة هنقوم أقوى.",
+"الدنيا مدرسة.. كل موقف درس.",
+"النية الطيبة بترد لك الحلوات.",
+"اللي يزرع طيب، يلاقي طيب.",
+"ما تخليش كلام الناس يكسرك، خليك على حالك.",
+"افتح قلبك للناس الطيبة، مش الكل ليه نفس",
+"لو محتاج راحة، خدها، مش ضعف ده حكمة.",
+"الابتسامة صدقة بسيطة، اضحك من قلبك.",
+"الحمد لله على النعم مهما كانت بسيطة.",
+"اللي يصبر على الشدة يلاقي الفرج قريب.",
+"لو مش لاقي حل، اطلب المشورة وربنا يفتحها.",
+"النجاح محتاج ممارسة يومية مش معجزة.",
+"اللي يحب الخير لغيره ربنا يكرمه.",
+"لو اتعبت النهاردة، بكرة فيه بداية جديدة.",
+"ابدي بخطوة صغيرة وانت دماغك راح تجيب الباقي.",
+"اللي يتواضع يعلى، حتى لو الدنيا ضده.",
+"اتعلم من غلطاتك وما تكررهاش نفس الموقف.",
+"اللي يضحك للناس يعيش حياة أخف.",
+"ما تندمش على الطيبة، بس خليك واعي مين تستلفه طيبتك.",
+"اللي يستنى البركة في كل حاجة يجده.",
+"لو قلبك متعب، صلاحه بالدعاء والذكر.",
+"خلي وقتك للأشياء اللي بتدي قيمة، مش بس زحمة.",
+"اللي يحب نفسه يعرف يرحم غيره.",
+"لو تعبت، خليك صبور وذاكر إن الهم مؤقت.",
+"لا ترجع للماضي كتير، قدامك فرص جديدة.",
+"النية اصل كل عمل، خليك صادق فيها.",
+"خليك عملى: اعمل خطوة كل يوم.",
+"اللي يفشل مش نهاية، ده بداية لتعديل المسار.",
+"لو محتاج تتكلم، احكي لحد تثق فيه.",
+"ابتسم وانت بتتألم، الضحكة بتخفف.",
+"اللي بيتحمل شوية تعب يلاقي ثمر أحلى.",
+"خد قرار بسيط وابدأ نعمله.",
+"ما تخافش من التغيير، أوقات هو أحسن حاجة.",
+"اللي دايمًا يشكر ربنا يومه أفضل.",
+"لو محتاج تقوّي، العبادة راحة للروح.",
+"اللي يعمل خير من غير تمثيل قلبه مرتاح."
+    ];
+
+    // expand to 500 with gentle variations (keeps colloquial feel)
+    function build500(base){
+      const out = [];
+      for(let q of base) out.push(q);
+      const suffixes = [" ✨"," 💪"," 😄"," — صدقني"," يلا"," إن شاء الله"," ❤️"," 👍"," 🙂"," (فكرة)"];
+      let i = 0;
+      while(out.length < 500){
+        const idx = i % base.length;
+        let cand = base[idx];
+        if(i % 7 === 0) cand = "افتكر: " + cand;
+        if(i % 11 === 0) cand = "نصيحة: " + cand;
+        if(Math.random() > 0.5) cand += suffixes[i % suffixes.length];
+        if(i % 13 === 0) cand = cand.replace("الدنيا","الدُنيا");
+        if(!out.includes(cand)) out.push(cand);
+        i++;
+        if(i>5000) break;
+      }
+      return out.slice(0,500);
+    }
+    const quotes = build500(baseQuotes);
+
+    /* ========== QUOTE LOGIC ========== */
+    const quoteEl = document.getElementById('quote');
+    const copyBtn = document.getElementById('copyBtn');
+    const shareBtn = document.getElementById('shareBtn');
+    const copiedTip = document.getElementById('copiedTip');
+
+    let lastIdx = -1;
+    function getRandomIndex(){
+      if(quotes.length === 0) return 0;
+      let i = Math.floor(Math.random() * quotes.length);
+      if(i === lastIdx){
+        i = (i + 1) % quotes.length;
+      }
+      lastIdx = i;
+      return i;
+    }
+
+    function setButtonsVisible(show){
+      if(show){
+        copyBtn.classList.add('show');
+        shareBtn.classList.add('show');
+      } else {
+        copyBtn.classList.remove('show');
+        shareBtn.classList.remove('show');
+      }
+    }
+
+    function animateIn(){
+      setButtonsVisible(false);
+      quoteEl.style.opacity = 0;
+      quoteEl.style.transform = 'translateY(6px)';
+      setTimeout(()=>{
+        const i = getRandomIndex();
+        quoteEl.textContent = quotes[i];
+        quoteEl.style.opacity = 1;
+        quoteEl.style.transform = 'translateY(0)';
+        // show buttons after small delay
+        setTimeout(()=> setButtonsVisible(true), 220);
+      }, 420);
+    }
+
+    // start and interval (10 seconds)
+    animateIn();
+    setInterval(animateIn, 10000);
+
+    // copy action
+    async function doCopy(){
+      const text = quoteEl.textContent || '';
+      try{
+        await navigator.clipboard.writeText(text);
+      } catch(e){
+        // fallback
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+      }
+      // pop effect
+      copyBtn.classList.add('pop');
+      // show tooltip
+      copiedTip.classList.add('show');
+      setTimeout(()=> copiedTip.classList.remove('show'), 2000);
+      setTimeout(()=> copyBtn.classList.remove('pop'), 220);
+    }
+
+    copyBtn.addEventListener('click', doCopy);
+
+    // share to whatsapp
+    function shareWhatsApp(){
+      const text = quoteEl.textContent || '';
+      const full = `${text}\n— من MK Clock`;
+      const url = "https://wa.me/?text=" + encodeURIComponent(full);
+      window.open(url, '_blank');
+    }
+    shareBtn.addEventListener('click', ()=>{
+      shareBtn.classList.add('pop');
+      setTimeout(()=> shareBtn.classList.remove('pop'), 220);
+      shareWhatsApp();
+    });
+
+    // keyboard shortcuts c = copy, s = share, m = toggle menu
+    window.addEventListener('keydown', (e)=>{
+      if(e.key.toLowerCase()==='c') doCopy();
+      if(e.key.toLowerCase()==='s') shareWhatsApp();
+      if(e.key.toLowerCase()==='m'){
+        if(overlay.classList.contains('show')) closeMenu(); else openMenu();
+      }
+    });
+
+    // ensure buttons appear on load slightly after first quote
+    window.addEventListener('load', ()=> setTimeout(()=> setButtonsVisible(true), 700));
+  </script>
+</body>
+</html>
